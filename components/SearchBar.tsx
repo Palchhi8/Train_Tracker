@@ -2,12 +2,22 @@
 
 import { useState } from "react";
 import { Search, Train, MapPin, ArrowRightLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function SearchBar() {
+  const router = useRouter();
   const [mode, setMode] = useState<"route" | "number">("route");
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
   const [trainNumber, setTrainNumber] = useState("");
+
+  const handleSearch = () => {
+    if (mode === "route" && source && destination) {
+      router.push(`/results?from=${source}&to=${destination}`);
+    } else if (mode === "number" && trainNumber) {
+      router.push(`/results?trainNumber=${trainNumber}`);
+    }
+  };
 
   return (
     <div className="glass" style={{ padding: "24px", marginTop: "20px" }}>
@@ -89,7 +99,11 @@ export default function SearchBar() {
         />
       )}
 
-      <button className="btn btn-primary" style={{ width: "100%", marginTop: "20px", gap: "8px" }}>
+      <button 
+        className="btn btn-primary" 
+        style={{ width: "100%", marginTop: "20px", gap: "8px" }}
+        onClick={handleSearch}
+      >
         <Search size={18} />
         Find Trains
       </button>
