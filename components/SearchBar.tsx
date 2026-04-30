@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { Search, Train, MapPin, ArrowRightLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSearchHistory } from "@/hooks/useSearchHistory";
 
 export default function SearchBar() {
   const router = useRouter();
+  const { addSearch } = useSearchHistory();
   const [mode, setMode] = useState<"route" | "number">("route");
   const [source, setSource] = useState("");
   const [destination, setDestination] = useState("");
@@ -13,8 +15,10 @@ export default function SearchBar() {
 
   const handleSearch = () => {
     if (mode === "route" && source && destination) {
+      addSearch({ type: "route", from: source, to: destination });
       router.push(`/results?from=${source}&to=${destination}`);
     } else if (mode === "number" && trainNumber) {
+      addSearch({ type: "number", trainNumber });
       router.push(`/results?trainNumber=${trainNumber}`);
     }
   };
