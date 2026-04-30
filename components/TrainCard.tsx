@@ -1,4 +1,4 @@
-import { Train, Clock, MapPin, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 interface TrainCardProps {
   train: {
@@ -14,15 +14,16 @@ interface TrainCardProps {
 
 export default function TrainCard({ train }: TrainCardProps) {
   return (
-    <div className="glass" style={{ 
-      padding: "20px", 
-      marginBottom: "16px", 
-      display: "flex", 
-      alignItems: "center", 
-      gap: "20px",
-      cursor: "pointer",
-      transition: "var(--transition)"
-    }}>
+    <Link href={`/train/${train.number}`} style={{ display: "block", textDecoration: "none" }}>
+      <div className="glass train-card-hover" style={{ 
+        padding: "20px", 
+        marginBottom: "16px", 
+        display: "flex", 
+        alignItems: "center", 
+        gap: "20px",
+        cursor: "pointer",
+        transition: "var(--transition)"
+      }}>
       {/* Time Column */}
       <div style={{ textAlign: "center", minWidth: "60px" }}>
         <h4 style={{ fontSize: "20px", fontWeight: 700 }}>{train.departureTime || "--:--"}</h4>
@@ -64,6 +65,7 @@ export default function TrainCard({ train }: TrainCardProps) {
         </div>
         <ChevronRight size={20} color="var(--card-border)" />
       </div>
-    </div>
+      </div>
+    </Link>
   );
 }
