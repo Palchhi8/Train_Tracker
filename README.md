@@ -1,28 +1,36 @@
-# 🚆 Train Tracker: Simplified Commuter Intelligence
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-##  The Core Idea
-The core idea of this project is to build a type-safe, efficient, and centralized train information platform that simplifies how commuters access railway data. Millions of local train commuters face daily challenges due to the lack of clear, centralized, and easily accessible train information. This platform bridges that gap by providing a single source of truth for schedules and platform details.
+## Getting Started
 
-## Problem Solving Strategy
-Users often struggle to identify trains between two stations, find accurate platform numbers, or retrieve details using a train number. Existing systems are fragmented, outdated, or difficult to navigate. 
+First, run the development server:
 
-Our strategy focuses on:
-1. **Centralization:** Bringing fragmented data into one unified, easy-to-navigate interface.
-2. **Type Safety:** Using TypeScript across the entire stack to ensure code reliability, fewer runtime errors, and improved maintainability.
-3. **Accessibility:** Designing a user-friendly interface that replaces the need for station boards or multiple unoptimized sources.
-4. **Performance:** Leveraging Next.js App Router for optimized rendering (SSG, SSR, and ISR) to ensure data is served instantly to users on the go.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-##  How It Works
-The system follows a simple but powerful workflow to ensure users get the information they need in seconds:
-* **Route Discovery:** Users input source and destination stations to retrieve all available trains along with their specific platform details.
-* **Direct Lookup:** Users can search using a specific train number to get real-time details and schedules for that specific train.
-* **Optimized Rendering:** Using a combination of static and server-side rendering, the most frequent routes are served instantly, while real-time data is fetched dynamically where necessary.
-* **Data Integrity:** Through Prisma ORM and Supabase, the system maintains a robust and type-safe connection to a PostgreSQL database, ensuring that the information retrieved is accurate and consistent.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-##  Tech Stack
-* **Frontend / Full-stack Framework:** Next.js (App Router with TypeScript)
-* **Backend:** Node.js with REST APIs (TypeScript-based)
-* **Database:** Supabase (PostgreSQL)
-* **ORM:** Prisma (Type-safe queries)
-* **Languages:** TypeScript (End-to-End)
-* **Tools & Services:** Git, GitHub, Environment Variables (.env), API Architecture
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

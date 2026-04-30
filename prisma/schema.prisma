@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  history   Json?    // For storing recent searches as a simple JSON array
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Station {
+  id        String     @id @default(cuid())
+  code      String     @unique
+  name      String
+  schedules Schedule[]
+}
+
+model Train {
+  id        String     @id @default(cuid())
+  number    String     @unique
+  name      String
+  type      String     // e.g., "LOCAL", "EXPRESS", "FAST"
+  schedules Schedule[]
+}
+
+model Schedule {
+  id             String  @id @default(cuid())
+  trainId        String
+  stationId      String
+  arrivalTime    String? // Format: HH:MM
+  departureTime  String? // Format: HH:MM
+  platformNumber String?
+  sequence       Int     // To maintain the order of stops
+
+  train   Train   @relation(fields: [trainId], references: [id])
+  station Station @relation(fields: [stationId], references: [id])
+
+  @@unique([trainId, stationId])
+}
