@@ -10,7 +10,7 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  history   Json?    // For storing recent searches as a simple JSON array
+  history   Json?    
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -26,7 +26,7 @@ model Train {
   id        String     @id @default(cuid())
   number    String     @unique
   name      String
-  type      String     // e.g., "LOCAL", "EXPRESS", "FAST"
+  type      String     
   schedules Schedule[]
 }
 
@@ -34,10 +34,10 @@ model Schedule {
   id             String  @id @default(cuid())
   trainId        String
   stationId      String
-  arrivalTime    String? // Format: HH:MM
-  departureTime  String? // Format: HH:MM
+  arrivalTime    String? 
+  departureTime  String? 
   platformNumber String?
-  sequence       Int     // To maintain the order of stops
+  sequence       Int     
 
   train   Train   @relation(fields: [trainId], references: [id])
   station Station @relation(fields: [stationId], references: [id])
