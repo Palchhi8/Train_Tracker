@@ -1,7 +1,8 @@
 import prisma from "@/lib/prisma";
 import TrainCard from "@/components/TrainCard";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, Globe } from "lucide-react";
 import Link from "next/link";
+import { fetchRailwayData, mapApiToInternal } from "@/lib/api";
 
 interface ResultsPageProps {
   searchParams: Promise<{
@@ -13,58 +14,82 @@ interface ResultsPageProps {
 
 export default async function ResultsPage({ searchParams }: ResultsPageProps) {
   const { from, to, trainNumber } = await searchParams;
+  const hasApiKey = !!process.env.RAPIDAPI_KEY;
 
   let trains: any[] = [];
+  let isLiveData = false;
 
   if (trainNumber) {
-    // Search by train number
-    const train = await prisma.train.findUnique({
-      where: { number: trainNumber },
-      include: { schedules: { include: { station: true }, orderBy: { sequence: 'asc' } } }
-    });
-    if (train) {
-      trains = [{
-        number: train.number,
-        name: train.name,
-        type: train.type,
-        departureTime: train.schedules[0]?.departureTime,
-        platform: train.schedules[0]?.platformNumber,
-      }];
+    if (hasApiKey) {
+      try {
+        const data = await fetchRailwayData("getTrainSchedule", { trainNumber });
+        if (data) {
+          trains = [mapApiToInternal(data)];
+          isLiveData = true;
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    if (trains.length === 0) {
+      // Fallback to local search
+      const train = await prisma.train.findUnique({
+        where: { number: trainNumber },
+        include: { schedules: { include: { station: true }, orderBy: { sequence: 'asc' } } }
+      });
+      if (train) {
+        trains = [{
+          number: train.number,
+          name: train.name,
+          type: train.type,
+          departureTime: train.schedules[0]?.departureTime,
+          platform: train.schedules[0]?.platformNumber,
+        }];
+      }
     }
   } else if (from && to) {
-    // Search station to station
-    // This query finds trains that stop at both stations in the correct order
-    const matchingTrains = await prisma.train.findMany({
-      where: {
-        AND: [
-          { schedules: { some: { station: { code: from.toUpperCase() } } } },
-          { schedules: { some: { station: { code: to.toUpperCase() } } } },
-        ]
-      },
-      include: {
-        schedules: {
-          include: { station: true }
+    if (hasApiKey) {
+      try {
+        const data = await fetchRailwayData("searchTrain", { from, to });
+        if (data && data.trains) {
+          trains = data.trains.map(mapApiToInternal);
+          isLiveData = true;
         }
-      }
-    });
+      } catch (e) { console.error(e); }
+    }
 
-    // Filter by sequence to ensure correct direction
-    trains = matchingTrains
-      .filter(t => {
-        const fromStop = t.schedules.find(s => s.station.code === from.toUpperCase());
-        const toStop = t.schedules.find(s => s.station.code === to.toUpperCase());
-        return fromStop && toStop && fromStop.sequence < toStop.sequence;
-      })
-      .map(t => {
-        const fromStop = t.schedules.find(s => s.station.code === from.toUpperCase());
-        return {
-          number: t.number,
-          name: t.name,
-          type: t.type,
-          departureTime: fromStop?.departureTime,
-          platform: fromStop?.platformNumber,
-        };
+    if (trains.length === 0) {
+      // Fallback to station to station local search
+      const matchingTrains = await prisma.train.findMany({
+        where: {
+          AND: [
+            { schedules: { some: { station: { code: from.toUpperCase() } } } },
+            { schedules: { some: { station: { code: to.toUpperCase() } } } },
+          ]
+        },
+        include: {
+          schedules: {
+            include: { station: true }
+          }
+        }
       });
+
+      trains = matchingTrains
+        .filter(t => {
+          const fromStop = t.schedules.find(s => s.station.code === from.toUpperCase());
+          const toStop = t.schedules.find(s => s.station.code === to.toUpperCase());
+          return fromStop && toStop && fromStop.sequence < toStop.sequence;
+        })
+        .map(t => {
+          const fromStop = t.schedules.find(s => s.station.code === from.toUpperCase());
+          return {
+            number: t.number,
+            name: t.name,
+            type: t.type,
+            departureTime: fromStop?.departureTime,
+            platform: fromStop?.platformNumber,
+          };
+        });
+    }
   }
 
   return (
@@ -78,9 +103,27 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
           <h2 style={{ fontSize: "20px" }}>
             {from && to ? `${from.toUpperCase()} to ${to.toUpperCase()}` : "Train Search"}
           </h2>
-          <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-            {trains.length} trains found
-          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+              {trains.length} trains found
+            </p>
+            {isLiveData && (
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "4px", 
+                color: "var(--success)", 
+                fontSize: "10px", 
+                fontWeight: 700,
+                background: "rgba(0, 200, 0, 0.1)",
+                padding: "2px 6px",
+                borderRadius: "4px"
+              }}>
+                <Globe size={10} />
+                LIVE
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
