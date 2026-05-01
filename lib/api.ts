@@ -1,7 +1,8 @@
-export const RAILWAY_API_HOST = "indian-railway-info.p.rapidapi.com";
+export const RAILWAY_API_HOST = "irctc1.p.rapidapi.com";
 
 export async function fetchRailwayData(endpoint: string, params: Record<string, string>) {
-  const url = new URL(`https://${RAILWAY_API_HOST}/${endpoint}`);
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = new URL(`https://${RAILWAY_API_HOST}${cleanEndpoint}`);
   Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
 
   const response = await fetch(url.toString(), {
@@ -10,26 +11,25 @@ export async function fetchRailwayData(endpoint: string, params: Record<string, 
       "x-rapidapi-key": process.env.RAPIDAPI_KEY || "",
       "x-rapidapi-host": RAILWAY_API_HOST,
     },
-    next: { revalidate: 3600 } // Cache for 1 hour
+    next: { revalidate: 60 } // Reduced cache for more real-time feel
   });
 
   if (!response.ok) {
-    throw new Error(`Railway API error: ${response.statusText}`);
+    console.warn(`Railway API info: ${response.status} ${response.statusText}`);
+    return null;
   }
 
   return response.json();
 }
 
-/**
- * Maps the external API response to our internal Train Tracker format
- */
 export function mapApiToInternal(apiTrain: any) {
+  // Handles different IRCTC API response formats
   return {
-    number: apiTrain.train_number || apiTrain.number,
-    name: apiTrain.train_name || apiTrain.name,
-    type: apiTrain.type || "Express",
-    departureTime: apiTrain.departure_time || "00:00",
-    platform: apiTrain.platform || "1",
+    number: apiTrain.train_number || apiTrain.trainNumber || apiTrain.number,
+    name: apiTrain.train_name || apiTrain.trainName || apiTrain.name,
+    type: apiTrain.train_type || apiTrain.type || "Express",
+    departureTime: apiTrain.from_sta || apiTrain.departureTime || "00:00",
+    platform: apiTrain.platform_number || apiTrain.platform || "1",
     status: "On Time"
   };
 }

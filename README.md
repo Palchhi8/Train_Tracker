@@ -19,10 +19,33 @@ The system follows a simple but powerful workflow to ensure users get the inform
 * **Optimized Rendering:** Using a combination of static and server-side rendering, the most frequent routes are served instantly, while real-time data is fetched dynamically where necessary.
 * **Data Integrity:** Through Prisma ORM and Supabase, the system maintains a robust and type-safe connection to a PostgreSQL database, ensuring that the information retrieved is accurate and consistent.
 
-##  Tech Stack
-* **Frontend / Full-stack Framework:** Next.js (App Router with TypeScript)
-* **Backend:** Node.js with REST APIs (TypeScript-based)
-* **Database:** Supabase (PostgreSQL)
-* **ORM:** Prisma (Type-safe queries)
-* **Languages:** TypeScript (End-to-End)
-* **Tools & Services:** Git, GitHub, Environment Variables (.env), API Architecture
+## 🚀 Quick Setup
+
+### 1. Environment Configuration
+Create a `.env` file in the root and add the following:
+```env
+DATABASE_URL=your_supabase_postgresql_url
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+RAPIDAPI_KEY=your_rapidapi_key_for_live_data
+```
+
+### 2. Database Sync
+Push the schema to your Supabase instance:
+```bash
+npx prisma db push
+npx prisma generate
+```
+
+### 3. Run Locally
+```bash
+npm install
+npm run dev
+```
+
+## 🛠️ Tech Stack
+* **Framework:** Next.js 16 (Turbopack)
+* **Auth:** Supabase SSR with Proxy protection
+* **Database:** Supabase (PostgreSQL) + Prisma 7
+* **Data:** Hybrid (Local DB + RapidAPI Live Intelligence)
+* **Design:** Custom Glassmorphism System

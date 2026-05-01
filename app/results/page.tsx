@@ -22,16 +22,16 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
   if (trainNumber) {
     if (hasApiKey) {
       try {
-        const data = await fetchRailwayData("getTrainSchedule", { trainNumber });
-        if (data) {
-          trains = [mapApiToInternal(data)];
+        const data = await fetchRailwayData("/api/v1/getTrainSchedule", { trainNo: trainNumber });
+        const trainData = data?.data || data;
+        if (trainData) {
+          trains = [mapApiToInternal(trainData)];
           isLiveData = true;
         }
       } catch (e) { console.error(e); }
     }
 
     if (trains.length === 0) {
-      // Fallback to local search
       const train = await prisma.train.findUnique({
         where: { number: trainNumber },
         include: { schedules: { include: { station: true }, orderBy: { sequence: 'asc' } } }
@@ -49,16 +49,21 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
   } else if (from && to) {
     if (hasApiKey) {
       try {
-        const data = await fetchRailwayData("searchTrain", { from, to });
-        if (data && data.trains) {
-          trains = data.trains.map(mapApiToInternal);
+        const today = new Date().toISOString().split('T')[0];
+        const data = await fetchRailwayData("/api/v2/trainBetweenStations", { 
+          fromStationCode: from.toUpperCase(), 
+          toStationCode: to.toUpperCase(),
+          dateOfJourney: today 
+        });
+        const rawTrains = data?.data?.trains || data?.trains || data?.data || [];
+        if (Array.isArray(rawTrains) && rawTrains.length > 0) {
+          trains = rawTrains.map(mapApiToInternal);
           isLiveData = true;
         }
-      } catch (e) { console.error(e); }
+      } catch (e) { console.error("Live fetch failed", e); }
     }
 
     if (trains.length === 0) {
-      // Fallback to station to station local search
       const matchingTrains = await prisma.train.findMany({
         where: {
           AND: [
@@ -67,9 +72,7 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
           ]
         },
         include: {
-          schedules: {
-            include: { station: true }
-          }
+          schedules: { include: { station: true } }
         }
       });
 
@@ -94,7 +97,6 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
 
   return (
     <div style={{ paddingBottom: "40px" }}>
-      {/* Header */}
       <div style={{ marginTop: "32px", marginBottom: "24px", display: "flex", alignItems: "center", gap: "16px" }}>
         <Link href="/" className="btn btn-secondary" style={{ padding: "10px", borderRadius: "50%" }}>
           <ArrowLeft size={20} />
@@ -109,25 +111,16 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
             </p>
             {isLiveData && (
               <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "4px", 
-                color: "var(--success)", 
-                fontSize: "10px", 
-                fontWeight: 700,
-                background: "rgba(0, 200, 0, 0.1)",
-                padding: "2px 6px",
-                borderRadius: "4px"
+                display: "flex", alignItems: "center", gap: "4px", color: "var(--success)", fontSize: "10px", fontWeight: 700,
+                background: "rgba(0, 200, 0, 0.1)", padding: "2px 6px", borderRadius: "4px"
               }}>
-                <Globe size={10} />
-                LIVE
+                <Globe size={10} /> LIVE
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Results List */}
       <div style={{ marginTop: "24px" }}>
         {trains.length > 0 ? (
           trains.map((train, i) => (
@@ -138,7 +131,7 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
             <MapPin size={48} color="var(--card-border)" style={{ marginBottom: "16px" }} />
             <h3 style={{ marginBottom: "8px" }}>No Trains Found</h3>
             <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>
-              Try searching with different stations or check the train number.
+              Try searching with station codes (e.g., JP to SWM) or check the train number.
             </p>
             <Link href="/" className="btn btn-primary" style={{ marginTop: "24px" }}>
               Back to Search
